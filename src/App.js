@@ -19,7 +19,8 @@ class App extends Component {
     const blob = await response.blob();
 
     if (response.status !== 200) {
-      throw Error(response.message);
+      // throw Error(response.message);
+      return false;
     }
 
     return blob;
@@ -50,14 +51,14 @@ class App extends Component {
     //     this.setState(prevState => ({image: [ ...prevState.image, image]})
     //   )})
     // const images =  await Promise.all([fetchImage1(), fetchImage2(), fetchImage3()])
-    const nums = [92, 93, 94, 98, 99, 100, 101, 103, 104, 106, 107, 108, 109, 110, 111, 112, 113, 114]
-    try {
-      const images = await Promise.all(nums.map(num => this.fetchImage(num)) )
-      this.setState(prevState => ({image: [ ...prevState.images, ...images]}));
-    }
-    catch (err) {
-      console.error(`Error: ${err.message}`)
-    }
+    const nums = [92, 93, 94, 98, 99, 100, 101, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116]
+    // try {
+    const images = await Promise.all(nums.map(num => this.fetchImage(num)) )
+    this.setState(prevState => ({image: [ ...prevState.images, ...images]}));
+    // }
+    // catch (err) {
+    //   console.error(`Error: ${err.message}`)
+    // }
     // console.log(images)
     // this.setState(prevState => ({image: [ ...prevState.images, blob1, blob2, blob3]}));
 
@@ -81,7 +82,7 @@ class App extends Component {
 
     const height = this.state.scrollEnought
     return (
-      <div style={{position: 'relative', display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
+      <div style={{position: 'relative', display: 'flex', flexWrap: 'wrap'}}>
         <h2 style={{position: 'fixed', top: 0, left: 0}}>
           <p>Viewport: {this.state.wHeight}</p>
           <p>ScrollY: {this.state.scrollY}</p>
@@ -89,7 +90,7 @@ class App extends Component {
 
         </h2>
         {this.state.image
-          ? this.state.image.map((img) => <img style={{margin: 0, padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)
+          ? this.state.image.map((img) => img && <img style={{margin: 0, padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)
           : <p>Loading...</p>
         }
       </div>
