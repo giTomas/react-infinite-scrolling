@@ -88,7 +88,10 @@ class App extends Component {
           <p>ScrollEnoght: {this.state.scrollEnought}</p>
 
         </h2>
-        {this.state.image && this.state.image.map((img) => <img style={{margin: 0, padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)}
+        {this.state.image
+          ? this.state.image.map((img) => <img style={{margin: 0, padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)
+          : <p>Loading...</p>
+        }
       </div>
     );
   }
