@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import R from 'ramda';
 
 class App extends Component {
   constructor(props) {
@@ -8,14 +9,54 @@ class App extends Component {
       wHeight: '',
       scollY: 0,
       scrollEnought: 0,
+      images: [],
     }
   }
 
-  componentDidMount() {
+  async fetchImage(img) {
+    const url = `https://unsplash.it/400/400?image=${img}`;
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    if (response.status !== 200) {
+      throw Error(response.message);
+    }
+
+    return blob;
+  }
+
+  async componentDidMount() {
     const wHeight = window.innerHeight;
     this.setState({wHeight});
     window.addEventListener('scroll', this.handleScroll, false);
+    const fetchImage1 = R.partial(this.fetchImage, ['101']);
+    const fetchImage2 = R.partial(this.fetchImage,  ['103']);
+    const fetchImage3 = R.partial(this.fetchImage,  ['104']);
+
+
+    // fetchImage1()
+    //   .then(response => response.blob())
+    //   .then(image => {
+    //     this.setState(prevState => ({image: [ ...prevState.image, image ]})
+    //   )})
+    // fetchImage2()
+    //   .then(response => response.blob())
+    //   .then(image => {
+    //     this.setState(prevState => ({image: [ ...prevState.image, image]})
+    //   )})
+    // fetchImage3()
+    //   .then(response => response.blob())
+    //   .then(image => {
+    //     this.setState(prevState => ({image: [ ...prevState.image, image]})
+    //   )})
+    const images =  await Promise.all([fetchImage1(), fetchImage2(), fetchImage3()])
+    // console.log(images)
+    // this.setState(prevState => ({image: [ ...prevState.images, blob1, blob2, blob3]}));
+    this.setState(prevState => ({image: [ ...prevState.images, ...images]}));
+
   }
+
+
 
   handleScroll = () => {
     const scrollY = window.pageYOffset;
@@ -37,6 +78,7 @@ class App extends Component {
           <p>Viewport: {this.state.wHeight}</p>
           <p>ScrollY: {this.state.scrollY}</p>
           <p>ScrollEnoght: {this.state.scrollEnought}</p>
+          {this.state.image && this.state.image.map((img) => <img src={URL.createObjectURL(img)} />)}
         </h2>
       </div>
     );
