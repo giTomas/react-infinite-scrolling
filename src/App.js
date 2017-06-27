@@ -29,9 +29,9 @@ class App extends Component {
     const wHeight = window.innerHeight;
     this.setState({wHeight});
     window.addEventListener('scroll', this.handleScroll, false);
-    const fetchImage1 = R.partial(this.fetchImage, ['101']);
-    const fetchImage2 = R.partial(this.fetchImage,  ['103']);
-    const fetchImage3 = R.partial(this.fetchImage,  ['104']);
+    // const fetchImage1 = R.partial(this.fetchImage, ['101']);
+    // const fetchImage2 = R.partial(this.fetchImage,  ['102']);
+    // const fetchImage3 = R.partial(this.fetchImage,  ['103']);
 
 
     // fetchImage1()
@@ -49,7 +49,9 @@ class App extends Component {
     //   .then(image => {
     //     this.setState(prevState => ({image: [ ...prevState.image, image]})
     //   )})
-    const images =  await Promise.all([fetchImage1(), fetchImage2(), fetchImage3()])
+    // const images =  await Promise.all([fetchImage1(), fetchImage2(), fetchImage3()])
+    const nums = [101, 103, 104, 109]
+    const images = await Promise.all(nums.map(num => this.fetchImage(num)) )
     // console.log(images)
     // this.setState(prevState => ({image: [ ...prevState.images, blob1, blob2, blob3]}));
     this.setState(prevState => ({image: [ ...prevState.images, ...images]}));
@@ -62,7 +64,7 @@ class App extends Component {
     const scrollY = window.pageYOffset;
     const wHeight = this.state.wHeight;
     const scroll = ((scrollY % wHeight) >= wHeight*0.9);
-    this.setState(prevState => {scrollEnought: scroll ? prevState.scrollEnought++ : prevState.scrollEnought});
+    // this.setState(prevState => {scrollEnought: scroll ? prevState.scrollEnought++ : prevState.scrollEnought});
   }
 
   componentWillUnmount() {
