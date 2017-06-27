@@ -10,6 +10,7 @@ class App extends Component {
       scollY: 0,
       scrollEnought: 0,
       images: [],
+      loading: false,
     }
   }
 
@@ -51,7 +52,7 @@ class App extends Component {
     //     this.setState(prevState => ({image: [ ...prevState.image, image]})
     //   )})
     // const images =  await Promise.all([fetchImage1(), fetchImage2(), fetchImage3()])
-    const nums = [92, 93, 94, 98, 99, 100, 101, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116]
+    const nums = [87, 88, 89, 90, 91, 92, 93, 94, 98, 99, 100, 101, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116]
     // try {
     const images = await Promise.all(nums.map(num => this.fetchImage(num)) )
     this.setState(prevState => ({image: [ ...prevState.images, ...images]}));
@@ -71,6 +72,14 @@ class App extends Component {
     const scrollY = window.pageYOffset;
     const wHeight = this.state.wHeight;
     const scroll = ((scrollY % wHeight) >= wHeight*0.9);
+    if (scroll && !this.state.loading) {
+      this.setState({loading: true});
+      // make list form
+      // add numbers to list
+      // htttp reques
+    } else {
+      return;
+    }
     // this.setState(prevState => {scrollEnought: scroll ? prevState.scrollEnought++ : prevState.scrollEnought});
   }
 
@@ -82,7 +91,7 @@ class App extends Component {
 
     const height = this.state.scrollEnought
     return (
-      <div style={{position: 'relative', display: 'flex', flexWrap: 'wrap'}}>
+      <div style={{position: 'relative', display: 'flex', flexWrap: 'wrap', justifyContent: 'center'}}>
         <h2 style={{position: 'fixed', top: 0, left: 0}}>
           <p>Viewport: {this.state.wHeight}</p>
           <p>ScrollY: {this.state.scrollY}</p>
@@ -90,7 +99,7 @@ class App extends Component {
 
         </h2>
         {this.state.image
-          ? this.state.image.map((img) => img && <img style={{margin: 0, padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)
+          ? this.state.image.map((img, i) => img && <img key={`img-${i.toString()}`} style={{margin:'1em', padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)
           : <p>Loading...</p>
         }
       </div>
