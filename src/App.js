@@ -3,6 +3,7 @@ import R from 'ramda';
 import styled, { keyframes } from 'styled-components';
 
 const Wrapper = styled.main`
+  font-family: 'Kalam', cursive;
   margin: 0 auto;
   padding: 1em 1em 10em;
   display: flex;
@@ -16,12 +17,38 @@ const Wrapper = styled.main`
   }
 `;
 
+const HeaderWrapper = styled.main`
+  font-family: 'Kalam', cursive;
+  margin: 0 auto;
+  padding: 0 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  max-width: 1300px;
+  @media(max-width: 1330px) {
+    max-width: 864px;
+  }
+  @media(max-width: 896px) {
+    max-width: 432px;
+  }
+`;
+
+const Link = styled.a`
+  transform: translate(10px, 50px);
+  transition: color 0.25s ease-out;
+  &:hover {
+    color: Crimson;
+  }
+`;
+
 const Header = styled.header`
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(255, 255, 255, 0.5);
-  width: 100vw;
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
 `;
 
 const ellipsis = keyframes`
@@ -29,14 +56,16 @@ const ellipsis = keyframes`
     width: 1.25em;
   }
 `
+const LoaderContainer = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+`;
 
 const Loader = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
   font-size: 30px;
-  padding: 2em;
-  width: 100%;
+  padding-top: 4em;
   &:after {
     overflow: hidden;
     display: inline-block;
@@ -47,6 +76,19 @@ const Loader = styled.div`
   }
 `;
 
+const Title = styled.h1`
+  font-family: 'Kalam', cursive;
+  color: Crimson;
+  margin: 0;
+  padding-left: 1rem;
+`;
+
+const Source = styled.h2`
+  font-family: 'Kalam', cursive;
+  color: Crimson;
+  margin: 0;
+  padding-right: 1rem;
+`;
 
 class App extends Component {
   constructor(props) {
@@ -102,7 +144,7 @@ class App extends Component {
     // const scrollY = window.pageYOffset;
     // const wHeight = this.state.wHeight;
     // const scroll = ((scrollY % wHeight) >= wHeight*0.8);
-    const scroll = (window.innerHeight + window.pageYOffset) >= document.body.offsetHeight;
+    const scroll = (window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 150);
 
     if (scroll && !this.state.loading) {
       this.setState({loading: true});
@@ -137,18 +179,23 @@ class App extends Component {
     return (
       <div style={{position: 'relative'}}>
         <Header>
-          <h2>
-            <p>Viewport: {this.state.wHeight}</p>
-            <p>ScrollY: {this.state.scrollY}</p>
-            <p>ScrollEnoght: {this.state.scrollEnought}</p>
-          </h2>
+          <HeaderWrapper>
+            <Title>
+              React infinite scroll
+            </Title>
+            <Source>
+              Images by <Link href='http://unsplash.it/'>unsplash.it</Link>
+            </Source>
+          </HeaderWrapper>
         </Header>
 
         <Wrapper>
           {this.state.images
             && this.state.images.map((img, i) =>
             img && <img key={`img-${i.toString()}`} style={{margin:'1em', padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)}
-          {this.state.loading && <Loader>Loading</Loader>}
+          <LoaderContainer>
+            <Loader>Loading</Loader>
+          </LoaderContainer>
         </Wrapper>
       </div>
     );
