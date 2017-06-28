@@ -43,11 +43,12 @@ const Link = styled.a`
 `;
 
 const Header = styled.header`
+  z-index: 1000;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.9);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
 `;
 
@@ -57,7 +58,10 @@ const ellipsis = keyframes`
   }
 `
 const LoaderContainer = styled.div`
-  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -65,7 +69,7 @@ const LoaderContainer = styled.div`
 
 const Loader = styled.div`
   font-size: 30px;
-  padding-top: 4em;
+  padding: 4em 0 2em;
   &:after {
     overflow: hidden;
     display: inline-block;
@@ -80,14 +84,29 @@ const Title = styled.h1`
   font-family: 'Kalam', cursive;
   color: Crimson;
   margin: 0;
-  padding-left: 1rem;
+  padding: 0 1rem;
 `;
 
 const Source = styled.h2`
   font-family: 'Kalam', cursive;
   color: Crimson;
   margin: 0;
-  padding-right: 1rem;
+  padding: 0 1rem;
+`;
+
+{/* <img key={`img-${i.toString()}`} style={{margin:'1em', padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} /> */}
+const imageShow = keyframes`
+  from {
+    opacity: 0
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const Image = styled.img`
+  margin: 1em;
+  animation: ${imageShow} 0.5s ease-out;
 `;
 
 class App extends Component {
@@ -95,12 +114,9 @@ class App extends Component {
     super(props)
 
     this.state = {
-      wHeight: 0,
-      scollY: 0,
-      scrollEnought: 0,
       range: [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23],
       images: [],
-      loading: false,
+      notLoading: true,
     }
 
     this.handleScroll = this.handleScroll.bind(this);
@@ -141,32 +157,23 @@ class App extends Component {
 
 
   async handleScroll() {
-    // const scrollY = window.pageYOffset;
-    // const wHeight = this.state.wHeight;
-    // const scroll = ((scrollY % wHeight) >= wHeight*0.8);
-    const scroll = (window.innerHeight + window.pageYOffset) >= (document.body.offsetHeight - 150);
+    const scrollToBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 150);
 
-    if (scroll && !this.state.loading) {
-      this.setState({loading: true});
-      // make list form
+
+    if (scrollToBottom && this.state.notLoading) {
+      this.setState(prevState => ({notLoading: !prevState.notLoading}));
       const len = this.state.range.length;
-      console.log(len);
       const toUpdate = this.state.range.slice(len-9, len);
-      console.log(toUpdate)
       const updated = toUpdate.map(num => num+10)
       const images = await Promise.all(updated.map(num => this.fetchImage(num)) )
       this.setState(prevState => ({
         images: [ ...prevState.images, ...images],
         range: [ ...prevState.range, ...updated],
-        loading: !prevState.loading
+        notLoading: !prevState.loading
       }));
-      // add numbers to list
-      // htttp reques
-
     } else {
       return;
     }
-    // this.setState(prevState => {scrollEnought: scroll ? prevState.scrollEnought++ : prevState.scrollEnought});
   }
 
   componentWillUnmount() {
@@ -174,8 +181,6 @@ class App extends Component {
   }
 
   render() {
-
-    const height = this.state.scrollEnought
     return (
       <div style={{position: 'relative'}}>
         <Header>
@@ -192,7 +197,7 @@ class App extends Component {
         <Wrapper>
           {this.state.images
             && this.state.images.map((img, i) =>
-            img && <img key={`img-${i.toString()}`} style={{margin:'1em', padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} />)}
+            img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)}
           <LoaderContainer>
             <Loader>Loading</Loader>
           </LoaderContainer>
