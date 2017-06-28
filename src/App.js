@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-// import R from 'ramda';
+import R from 'ramda';
 import styled, { keyframes } from 'styled-components';
 
 const Wrapper = styled.main`
@@ -94,7 +94,6 @@ const Source = styled.h2`
   padding: 0 1rem;
 `;
 
-{/* <img key={`img-${i.toString()}`} style={{margin:'1em', padding: 0, lineHeight: 0,}} src={URL.createObjectURL(img)} /> */}
 const imageShow = keyframes`
   from {
     opacity: 0
@@ -109,6 +108,25 @@ const Image = styled.img`
   animation: ${imageShow} 0.5s ease-out;
 `;
 
+async function fetchImage(img) {
+  const url = `https://unsplash.it/400/400?image=${img}`;
+  const response = await fetch(url);
+  const blob = await response.blob();
+
+  if (!response.ok) {
+    // throw Error(response.statusText);
+    return false;
+  }
+  return blob;
+}
+
+const mapToFetchImage = R.map(fetchImage);
+const mapIndexed = R.addIndex(R.map);
+//filter false values
+const mapToImageEls = mapIndexed((img, i) => (
+    img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
+);
+
 class App extends Component {
   constructor(props) {
     super(props)
@@ -117,47 +135,27 @@ class App extends Component {
       range: [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23],
       images: [],
       notLoading: true,
+      wheight: null,
     }
 
     this.handleScroll = this.handleScroll.bind(this);
   }
 
-  async fetchImage(img) {
-    const url = `https://unsplash.it/400/400?image=${img}`;
-    const response = await fetch(url);
-    const blob = await response.blob();
 
-    if (!response.ok) {
-      // throw Error(response.statusText);
-      return false;
-    }
-
-    return blob;
-  }
 
   async componentDidMount() {
     const wHeight = window.innerHeight;
     this.setState({wHeight});
     window.addEventListener('scroll', this.handleScroll, false);
-
-    // const nums = [10, 12, 13, 14, 15, 16, 17, 18, 19, 23, 24, 35, 87, 88, 89, 90, 91, 92, 93, 94, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117]
-    // try {
-    const images = await Promise.all(this.state.range.map(num => this.fetchImage(num)) )
+    // const images = await Promise.all(this.state.range.map(num => this.fetchImage(num)))
+    const images = await Promise.all(mapToFetchImage(this.state.range))
     this.setState(prevState => ({images: [ ...prevState.images, ...images]}));
-    // }
-    // catch (err) {
-    //   console.error(`Error: ${err.message}`)
-    // }
-    // console.log(images)
-    // this.setState(prevState => ({image: [ ...prevState.images, blob1, blob2, blob3]}));
-
-
   }
 
 
 
   async handleScroll() {
-    const scrollToBottom = (window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 150);
+    const scrollToBottom = (this.state.wHeight + window.scrollY) >= (document.body.offsetHeight - 150);
 
 
     if (scrollToBottom && this.state.notLoading) {
@@ -165,7 +163,7 @@ class App extends Component {
       const len = this.state.range.length;
       const toUpdate = this.state.range.slice(len-9, len);
       const updated = toUpdate.map(num => num+10)
-      const images = await Promise.all(updated.map(num => this.fetchImage(num)) )
+      const images = await Promise.all(mapToFetchImage(updated))
       this.setState(prevState => ({
         images: [ ...prevState.images, ...images],
         range: [ ...prevState.range, ...updated],
@@ -195,9 +193,10 @@ class App extends Component {
         </Header>
 
         <Wrapper>
-          {this.state.images
+          {/* {this.state.images
             && this.state.images.map((img, i) =>
-            img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)}
+            img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)} */}
+          {this.state.images && mapToImageEls(this.state.images)}
           <LoaderContainer>
             <Loader>Loading</Loader>
           </LoaderContainer>
