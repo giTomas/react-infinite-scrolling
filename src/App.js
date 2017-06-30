@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import R from 'ramda';
 import styled, { keyframes } from 'styled-components';
 
+// TODO: mobX versiom
+// TODO: redux version
+
 const Wrapper = styled.main`
   font-family: 'Kalam', cursive;
   margin: 0 auto;
@@ -120,13 +123,13 @@ async function fetchImage(img) {
   return blob;
 }
 
+// ramda composition
 const isNotNull = n => n && n;
 const filterNulls = R.filter(isNotNull);
 const mapToFetchImage = R.map(fetchImage);
 const mapIndexed = R.addIndex(R.map);
-//filter false values
 const mapToImageEls = mapIndexed((img, i) => (
-    img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
+    <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
 );
 const addImageEls = R.compose(
   mapToImageEls,
@@ -153,8 +156,7 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    const wHeight = window.innerHeight;
-    this.setState({wHeight});
+    this.setState({wHeight: window.innerHeight});
     window.addEventListener('scroll', this.handleScroll, false);
     const images = await Promise.all(mapToFetchImage(this.state.range))
     this.setState(prevState => ({images: [ ...prevState.images, ...images]}));
