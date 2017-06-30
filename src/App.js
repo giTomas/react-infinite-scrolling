@@ -115,17 +115,28 @@ async function fetchImage(img) {
 
   if (!response.ok) {
     // throw Error(response.statusText);
-    return false;
+    return null;
   }
   return blob;
 }
 
+const isNotNull = n => n && n;
+const filterNulls = R.filter(isNotNull);
 const mapToFetchImage = R.map(fetchImage);
 const mapIndexed = R.addIndex(R.map);
 //filter false values
 const mapToImageEls = mapIndexed((img, i) => (
     img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
 );
+const addImageEls = R.compose(
+  mapToImageEls,
+  filterNulls
+)
+const sliceLasts = arr => R.slice(arr.length-9, arr.length, arr);
+const nextImages = R.compose(
+  R.map(R.add(10)),
+  sliceLasts
+)
 
 class App extends Component {
   constructor(props) {
@@ -135,24 +146,19 @@ class App extends Component {
       range: [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23],
       images: [],
       notLoading: true,
-      wheight: null,
+      wHeight: null,
     }
 
     this.handleScroll = this.handleScroll.bind(this);
   }
 
-
-
   async componentDidMount() {
     const wHeight = window.innerHeight;
     this.setState({wHeight});
     window.addEventListener('scroll', this.handleScroll, false);
-    // const images = await Promise.all(this.state.range.map(num => this.fetchImage(num)))
     const images = await Promise.all(mapToFetchImage(this.state.range))
     this.setState(prevState => ({images: [ ...prevState.images, ...images]}));
   }
-
-
 
   async handleScroll() {
     const scrollToBottom = (this.state.wHeight + window.scrollY) >= (document.body.offsetHeight - 150);
@@ -160,9 +166,7 @@ class App extends Component {
 
     if (scrollToBottom && this.state.notLoading) {
       this.setState(prevState => ({notLoading: !prevState.notLoading}));
-      const len = this.state.range.length;
-      const toUpdate = this.state.range.slice(len-9, len);
-      const updated = toUpdate.map(num => num+10)
+      const updated = nextImages(this.state.range)
       const images = await Promise.all(mapToFetchImage(updated))
       this.setState(prevState => ({
         images: [ ...prevState.images, ...images],
@@ -193,10 +197,7 @@ class App extends Component {
         </Header>
 
         <Wrapper>
-          {/* {this.state.images
-            && this.state.images.map((img, i) =>
-            img && <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)} */}
-          {this.state.images && mapToImageEls(this.state.images)}
+          {this.state.images && addImageEls(this.state.images)}
           <LoaderContainer>
             <Loader>Loading</Loader>
           </LoaderContainer>
