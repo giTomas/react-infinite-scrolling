@@ -1,57 +1,52 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import InfiniteScroll from './components/infiniteScroll';
 import {
   filterNulls,
   mapToFetchImage,
   nextSequence
 } from './helpers/helpersRamda';
+import {
+  addBlobs,
+  setWHeight,
+  toggleNotLoading,
+  setNewSequence,
+  setErrorMsg,
+  clearErrorMsg,
+} from './actionCreators/actionCreators';
 
 class App extends Component {
   constructor(props) {
     super(props)
 
-    this.state = {
-      sequence: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
-      images: [],
-      notLoading: true,
-      wHeight: null,
-      error: false,
-    }
-
     this.handleScroll = this.handleScroll.bind(this);
   }
 
   async componentDidMount() {
-    this.setState({wHeight: window.innerHeight});
+    this.props.setWHeight(window.innerHeight);
     window.addEventListener('scroll', this.handleScroll, false);
-    const images = await Promise.all(mapToFetchImage(this.state.sequence))
-    this.setState({images});
+    const images = await Promise.all(mapToFetchImage(this.props.sequence))
+    this.props.addBlobs(images);
   }
 
   async handleScroll() {
-    const scrollToBottom = (this.state.wHeight + window.scrollY) >= (document.body.offsetHeight - 100);
+    const scrollToBottom = (this.props.wHeight + window.scrollY) >= (document.body.offsetHeight - 100);
 
-    if (scrollToBottom && this.state.notLoading) {
-      this.setState(prevState => ({
-        notLoading: !prevState.notLoading,
-        error: false,
-      }));
+    if (scrollToBottom && this.props.notLoading) {
+      this.props.clearErrorMsg();
+      this.props.toggleNotLoading()
 
       try {
-        const newSequence = nextSequence(this.state.sequence)
+        const newSequence = nextSequence(this.props.sequence)
         const images      = await Promise.all(mapToFetchImage(newSequence))
         const filtered    = filterNulls(images)
-        this.setState(prevState => ({
-          images: [ ...prevState.images, ...filtered],
-          sequence: newSequence,
-          notLoading: !prevState.notLoading
-        }));
+        this.props.addBlobs(filtered);
+        this.props.setNewSequence(newSequence);
+        this.props.toggleNotLoading();
       }
       catch (err) {
-        this.setState(prevState => ({
-          notLoading: !prevState.notLoading,
-          error: err.message,
-        }));
+        this.props.setErrorMsg(err.message);
+        this.props.toggleNotLoading();
       }
     } else {
       return;
@@ -64,9 +59,41 @@ class App extends Component {
 
   render() {
     return (
-      <InfiniteScroll state={this.state} />
+      <InfiniteScroll state={this.props} />
     );
   }
 }
 
-export default App;
+const mapStateToProps = state => ({
+  sequence: state.sequence,
+  images: state.blobs,
+  notLoading: state.notLoading,
+  wHeight: state.wHeight,
+  error: state.error,
+});
+
+const mapDispatchToProps = dispatch => ({
+  setWHeight: (wHeight) => {
+    dispatch(setWHeight(wHeight))
+  },
+  addBlobs: (blobs) => {
+    dispatch(addBlobs(blobs))
+  },
+  toggleNotLoading: () => {
+    dispatch(toggleNotLoading())
+  },
+  clearErrorMsg: () => {
+    dispatch(clearErrorMsg())
+  },
+  setNewSequence: (sequence) => {
+    dispatch(setNewSequence(sequence))
+  },
+  setErrorMsg: (msg) => {
+    dispatch(setErrorMsg(msg))
+  }
+})
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(App);
