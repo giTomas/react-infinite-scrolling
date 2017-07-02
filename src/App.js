@@ -5,43 +5,37 @@ import styled, { keyframes } from 'styled-components';
 // TODO: mobX versiom
 // TODO: redux version
 
-const Wrapper = styled.main`
-  font-family: 'Kalam', cursive;
-  margin: 0 auto;
-  padding: 1em 1em 10em;
-  display: flex;
-  flex-wrap: wrap;
-  max-width: 1300px;
-  @media(max-width: 1330px) {
-    max-width: 864px;
-  }
-  @media(max-width: 896px) {
-    max-width: 432px;
-  }
+const PageWrapper = styled.div`
+  position: relative;
+  font-family: 'Raleway', sans-serif;
 `;
 
-const HeaderWrapper = styled.main`
-  font-family: 'Kalam', cursive;
+const Wrapper = styled.main`
   margin: 0 auto;
-  padding: 0 1em;
+  padding: 3.9em 1em 10em;
+  justify-content: space-between;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 1200px;
+`;
+
+const InnerWrapper = styled.div`
+  margin: 0 auto;
+  padding: 0.5em 1em;
   display: flex;
   justify-content: space-between;
   align-items: baseline;
   flex-wrap: wrap;
-  max-width: 1300px;
-  @media(max-width: 1330px) {
-    max-width: 864px;
-  }
-  @media(max-width: 896px) {
-    max-width: 432px;
-  }
+  max-width: 1200px;
 `;
 
 const Link = styled.a`
-  transform: translate(10px, 50px);
+  font-family: 'Raleway', sans-serif;
+  font-weight: 300;
+  color: black;
   transition: color 0.25s ease-out;
   &:hover {
-    color: Crimson;
+    color: Grey;
   }
 `;
 
@@ -51,8 +45,9 @@ const Header = styled.header`
   top: 0;
   left: 0;
   right: 0;
-  background-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
+  background-image: linear-gradient(to right, rgba(0, 255, 255, 0.85), rgba(127, 255, 212, 0.85));
+  ${'' /* background-color: rgba(, 255, 255, 255, 0.8); */}
+  box-shadow: 0 2px 3px rgba(0, 51, 51, 0.35);
 `;
 
 const ellipsis = keyframes`
@@ -71,7 +66,8 @@ const LoaderContainer = styled.div`
 `;
 
 const Loader = styled.div`
-  font-size: 30px;
+  font-weight: 300;
+  font-size: 2em;
   padding: 4em 0 2em;
   &:after {
     overflow: hidden;
@@ -84,15 +80,13 @@ const Loader = styled.div`
 `;
 
 const Title = styled.h1`
-  font-family: 'Kalam', cursive;
-  color: Crimson;
-  margin: 0;
+  font-weight: 300;
+  margin: 0 0 0 -3px;
   padding: 0 1rem;
 `;
 
 const Source = styled.h2`
-  font-family: 'Kalam', cursive;
-  color: Crimson;
+  font-weight: 300;
   margin: 0;
   padding: 0 1rem;
 `;
@@ -107,49 +101,72 @@ const imageShow = keyframes`
 `;
 
 const Image = styled.img`
+  width: calc(25% - 2em);
   margin: 1em;
-  animation: ${imageShow} 0.5s ease-out;
+  box-shadow: 0 1px 2px rgba(0, 51, 51, 0.35);
+  animation: ${imageShow} 2s ease-out;
+  @media(max-width: 850px) {
+    width: calc(33.33% - 2em);
+  }
+  @media(max-width: 450px) {
+    width: calc(50% - 2em);
+  }
 `;
 
 async function fetchImage(img) {
-  const url = `https://unsplash.it/400/400?image=${img}`;
+  const url = `https://unsplash.it/300/300?image=${img}`;
   const response = await fetch(url);
   const blob = await response.blob();
 
   if (!response.ok) {
     // throw Error(response.statusText);
-    return null;
+    return false;
   }
   return blob;
 }
 
-// ramda composition
-const isNotNull = n => n && n;
-const filterNulls = R.filter(isNotNull);
+// ramda
+const isNotFalse = n => n && n;
+const filterNulls = R.filter(isNotFalse);
 const mapToFetchImage = R.map(fetchImage);
 const mapIndexed = R.addIndex(R.map);
+const nextSequence = R.map(R.add(16));
 const mapToImageEls = mapIndexed((img, i) => (
     <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
 );
-const addImageEls = R.compose(
-  mapToImageEls,
-  filterNulls
-)
-const sliceLasts = arr => R.slice(arr.length-9, arr.length, arr);
-const nextImages = R.compose(
-  R.map(R.add(10)),
-  sliceLasts
-)
+
+const InfiniteScroll = ({state: {images, notLoading, error}}) => (
+  <PageWrapper>
+    <Header>
+      <InnerWrapper>
+        <Title>
+          React infinite scroll
+        </Title>
+        <Source>
+          Images by <Link href='http://unsplash.it/'>unsplash.it</Link>
+        </Source>
+      </InnerWrapper>
+    </Header>
+    <Wrapper>
+      {images && mapToImageEls(images)}
+      <LoaderContainer>
+        {(!notLoading && !error) && <Loader>Loading</Loader>}
+        {error && <p>{error}</p>}
+      </LoaderContainer>
+    </Wrapper>
+  </PageWrapper>
+);
 
 class App extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      range: [10, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23],
+      sequence: [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
       images: [],
       notLoading: true,
       wHeight: null,
+      error: false,
     }
 
     this.handleScroll = this.handleScroll.bind(this);
@@ -158,23 +175,35 @@ class App extends Component {
   async componentDidMount() {
     this.setState({wHeight: window.innerHeight});
     window.addEventListener('scroll', this.handleScroll, false);
-    const images = await Promise.all(mapToFetchImage(this.state.range))
-    this.setState(prevState => ({images: [ ...prevState.images, ...images]}));
+    const images = await Promise.all(mapToFetchImage(this.state.sequence))
+    this.setState({images});
   }
 
   async handleScroll() {
-    const scrollToBottom = (this.state.wHeight + window.scrollY) >= (document.body.offsetHeight - 150);
-
+    const scrollToBottom = (this.state.wHeight + window.scrollY) >= (document.body.offsetHeight - 100);
 
     if (scrollToBottom && this.state.notLoading) {
-      this.setState(prevState => ({notLoading: !prevState.notLoading}));
-      const updated = nextImages(this.state.range)
-      const images = await Promise.all(mapToFetchImage(updated))
       this.setState(prevState => ({
-        images: [ ...prevState.images, ...images],
-        range: [ ...prevState.range, ...updated],
-        notLoading: !prevState.loading
+        notLoading: !prevState.notLoading,
+        error: false,
       }));
+
+      try {
+        const newSequence = nextSequence(this.state.sequence)
+        const images      = await Promise.all(mapToFetchImage(newSequence))
+        const filtered    = filterNulls(images)
+        this.setState(prevState => ({
+          images: [ ...prevState.images, ...filtered],
+          sequence: newSequence,
+          notLoading: !prevState.notLoading
+        }));
+      }
+      catch (err) {
+        this.setState(prevState => ({
+          notLoading: !prevState.notLoading,
+          error: err.message,
+        }));
+      }
     } else {
       return;
     }
@@ -186,25 +215,7 @@ class App extends Component {
 
   render() {
     return (
-      <div style={{position: 'relative'}}>
-        <Header>
-          <HeaderWrapper>
-            <Title>
-              React infinite scroll
-            </Title>
-            <Source>
-              Images by <Link href='http://unsplash.it/'>unsplash.it</Link>
-            </Source>
-          </HeaderWrapper>
-        </Header>
-
-        <Wrapper>
-          {this.state.images && addImageEls(this.state.images)}
-          <LoaderContainer>
-            <Loader>Loading</Loader>
-          </LoaderContainer>
-        </Wrapper>
-      </div>
+      <InfiniteScroll state={this.state} />
     );
   }
 }
