@@ -60,7 +60,7 @@ class App extends Component {
 
   render() {
     return (
-      <InfiniteScroll state={this.props} />
+      <InfiniteScroll />
     );
   }
 }

@@ -1,6 +1,8 @@
 import React from 'react';
+import { connect } from 'react-redux';
 import styled, { keyframes } from 'styled-components';
 import { mapIndexed } from '../helpers/helpersRamda';
+
 
 const PageWrapper = styled.div`
   position: relative;
@@ -115,7 +117,7 @@ const mapToImageEls = mapIndexed((img, i) => (
     <Image key={`img-${i.toString()}`} src={URL.createObjectURL(img)} />)
 );
 
-const InfiniteScroll = ({state: {images, notLoading, error}}) => (
+const InfiniteScroll = ({images, notLoading, error}) => (
   <PageWrapper>
     <Header>
       <InnerWrapper>
@@ -137,4 +139,12 @@ const InfiniteScroll = ({state: {images, notLoading, error}}) => (
   </PageWrapper>
 );
 
-export default InfiniteScroll;
+const mapStateToProps = state => ({
+  images: state.blobs,
+  notLoading: state.notLoading,
+  error: state.error,
+});
+
+export default connect(
+  mapStateToProps,
+)(InfiniteScroll);
