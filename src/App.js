@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
+import throttle from 'lodash.throttle';
 import InfiniteScroll from './components/infiniteScroll';
 import {
   filterNulls,
@@ -24,7 +25,7 @@ class App extends Component {
 
   async componentDidMount() {
     this.props.setWHeight(window.innerHeight);
-    window.addEventListener('scroll', this.handleScroll, false);
+    window.addEventListener('scroll', throttle(this.handleScroll, 400), false);
     const images = await Promise.all(mapToFetchImage(this.props.sequence))
     this.props.addBlobs(images);
   }
@@ -54,7 +55,7 @@ class App extends Component {
   }
 
   componentWillUnmount() {
-    window.removeEventListener('scroll', this.handleScroll, false)
+    window.removeEventListener('scroll', throttle(this.handleScroll, 400), false)
   }
 
   render() {
